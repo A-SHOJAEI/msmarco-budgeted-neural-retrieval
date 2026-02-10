@@ -1,0 +1,13 @@
+# Optional heavy ML dependencies for dense retrieval / training runs.
+# Not installed by default (see Makefile `setup-ml`).
+
+# PyTorch (CPU/GPU builds vary by platform; keep unpinned unless you need strict lockfiles).
+torch
+
+# Hugging Face transformer models (only needed for dense encoder + distillation teacher).
+transformers
+sentencepiece
+
+# FAISS for dense indexing/compression experiments.
+faiss-cpu
+

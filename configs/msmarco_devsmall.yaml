@@ -1,0 +1,56 @@
+run:
+  name: msmarco_devsmall
+  seed: 123
+  deterministic: true
+  device: auto
+
+dataset:
+  type: msmarco_passage
+  root_dir: data/msmarco
+  raw_dir: data/raw/msmarco
+  download: true
+  extract: true
+  # Use dev.small by default for iteration.
+  train_queries_tsv: queries.train.tsv
+  eval_queries_tsv: queries.dev.small.tsv
+  eval_qrels_tsv: qrels.dev.small.tsv
+  triples_tsv: triples.train.small.tsv
+
+bm25:
+  backend: pyserini  # Baseline in the research plan.
+  k: 10
+
+model:
+  encoder_name: bert-base-uncased
+  pooling: mean
+  projection_dim: 768
+  normalize: true
+
+train:
+  enabled: true
+  epochs: 1
+  batch_size: 32
+  lr: 2.0e-5
+  weight_decay: 0.01
+  max_length: 256
+  grad_clip_norm: 1.0
+  log_every: 50
+  eval_every: 500
+
+distillation:
+  enabled: true
+  teacher_name: cross-encoder/ms-marco-MiniLM-L-6-v2
+  temperature: 1.0
+  alpha_kl: 0.5
+  max_length: 256
+
+faiss:
+  enabled: true
+  index_type: flatip
+  k: 100
+
+eval:
+  k_values: [10, 100]
+  latency_max_queries: 2000
+
+artifacts_dir: artifacts

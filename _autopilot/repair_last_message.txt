@@ -1,0 +1,14 @@
+`make all` now succeeds end-to-end on Ubuntu/Python 3.12 and produces:
+
+- `artifacts/results.json`
+- `artifacts/report.md`
+
+Changes made (minimal + to keep the default smoke run fast/offline):
+
+- Fixed the Makefile parse error by rewriting `clean` to a single-line `python3 -c ...` recipe (no heredoc / no missing-separator). (`Makefile`)
+- Simplified `make setup` to always bootstrap a repo-local venv via `scripts/bootstrap_venv.sh` (PEP 668 safe, works without `ensurepip`), and added `setup-ml` for optional heavy deps. (`Makefile`)
+- Removed heavy ML deps from the default install so `make setup` doesn’t pull multi-hundred-MB wheels; added them to a separate file. (`requirements.txt`, `requirements-ml.txt`)
+- Made the default smoke config skip training/distillation/FAISS so it runs quickly and doesn’t download models. (`configs/smoke.yaml`)
+- Avoided importing training code (and thus torch/transformers) when `train.enabled: false`. (`scripts/train.py`)
+- Made reproducibility + eval pipeline tolerate missing torch/transformers by importing them optionally and skipping dense evaluation when not installed (BM25 baseline still runs). (`src/msmarco_bnr/utils/repro.py`, `src/msmarco_bnr/eval/pipeline.py`)
+- Documented `make setup-ml` in the README. (`README.md`)

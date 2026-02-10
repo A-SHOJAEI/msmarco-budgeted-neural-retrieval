@@ -1,0 +1,4 @@
+# Optional dependency for the Lucene/pyserini BM25 baseline (not installed by default).
+# Keep pinned because pyserini + Java bindings can be fragile across versions.
+pyserini==1.2.0
+

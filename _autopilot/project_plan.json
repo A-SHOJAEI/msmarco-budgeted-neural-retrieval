@@ -1,0 +1,75 @@
+{
+  "repo_name": "msmarco-budgeted-neural-retrieval",
+  "title": "Budget-Aware Neural Retrieval on MS MARCO: Distilled Bi-Encoder + FAISS Quantization",
+  "one_liner": "Train a production-grade dense retriever on MS MARCO and rigorously quantify the accuracy-latency-memory tradeoff via embedding distillation and FAISS PQ/IVF indexing.",
+  "research_question": "Can a distilled bi-encoder retriever, combined with aggressive vector compression (dimension reduction + product quantization), match BM25 and approach uncompressed dense retrieval quality on MS MARCO while reducing index size and improving tail latency on commodity GPUs?",
+  "dataset": {
+    "name": "MS MARCO Passage Ranking (8.8M passages + training triples + qrels/dev queries)",
+    "urls": [
+      "https://msmarco.blob.core.windows.net/msmarcoranking/collection.tar.gz",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/queries.train.tsv",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/queries.dev.small.tsv",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/qrels.train.tsv",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/qrels.dev.small.tsv",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/triples.train.small.tsv",
+      "https://msmarco.blob.core.windows.net/msmarcoranking/triples.train.tsv"
+    ],
+    "license": "MS MARCO Dataset License (Microsoft; research use)",
+    "approx_size_gb": 7.5,
+    "ingestion_notes": "Download and extract collection.tsv (8.8M passages). Stream-parse TSV to avoid RAM spikes; build (1) Lucene BM25 index and (2) dense embedding shards (FP16) for FAISS. Use official qrels/dev.small for fast iteration; optionally switch to full dev for final numbers. Ensure enough disk for artifacts: passages + Lucene index + embeddings + FAISS index + checkpoints (plan ~200GB)."
+  },
+  "method": {
+    "model": "PyTorch bi-encoder dense retriever (BERT-base encoder; mean pooling; InfoNCE with in-batch negatives) distilled from a cross-encoder teacher (MiniLM/DeBERTa-style) using KL on soft scores over mined negatives; retrieval via FAISS (FlatIP baseline, then IVF-OPQ-PQ compressed index).",
+    "baseline": "BM25 (Lucene/pyserini) on MS MARCO passages; report nDCG@10/MRR@10/Recall@{10,100} on dev.small (and full dev for final run).",
+    "ablations": [
+      "No distillation (pure contrastive bi-encoder).",
+      "Embedding dimension reduction: 768 vs 256 (learned linear projection) before indexing.",
+      "FAISS compression sweep: FlatIP vs IVF-PQ (vary nlist, m, nbits) while holding candidate budget fixed.",
+      "Hard-negative mining on/off (BM25-mined negatives vs random negatives)."
+    ],
+    "metrics": [
+      "nDCG@10 (primary)",
+      "MRR@10",
+      "Recall@10",
+      "Recall@100",
+      "Index size on disk (GB)",
+      "P50/P95 query latency (ms) for top-k retrieval at fixed k",
+      "Throughput (queries/sec) on 1 GPU and 2 GPUs"
+    ]
+  },
+  "compute": {
+    "gpus": 2,
+    "expected_hours": 32
+  },
+  "risks": [
+    "BM25 index build time can dominate (hours) and requires Java/Lucene tooling; mitigate by running dev.small first and caching the index.",
+    "FAISS IVF/PQ hyperparameters can cause unstable recall if mis-tuned; mitigate with a small grid under fixed candidate budgets.",
+    "Encoding 8.8M passages is GPU-time heavy; mitigate with sharded encoding, resumable checkpoints, and optional passage subsampling for early experiments.",
+    "Disk usage can exceed expectations once indexes/checkpoints accumulate; mitigate with an artifacts/ directory and explicit cleanup targets."
+  ],
+  "execution_steps": [
+    "Create repo and env (Python 3.10+), install: torch, transformers, sentencepiece, faiss-gpu, pyserini (or lucene), pyarrow, numpy, tqdm, wandb(or tensorboard).",
+    "Run dataset download script to fetch and verify MS MARCO files from the listed URLs; extract collection.tar.gz to data/msmarco/.",
+    "Build BM25 index over collection.tsv; run BM25 evaluation on queries.dev.small.tsv + qrels.dev.small.tsv; save metrics JSON.",
+    "Train cross-encoder teacher on triples.train.small.tsv (or use a publicly available checkpoint if you choose to include it in-repo via config); evaluate as reranker to sanity-check data pipeline.",
+    "Train bi-encoder student with contrastive loss; then enable distillation loss using teacher scores over mined negatives; log training curves and validation nDCG@10.",
+    "Encode all passages (sharded) to FP16 embeddings; build FAISS FlatIP index; evaluate retrieval metrics and latency.",
+    "Build compressed FAISS IVF-OPQ-PQ indexes across a small sweep; evaluate accuracy vs (index size, latency) and select Pareto-optimal configs.",
+    "Run ablations (at least: no-distillation, and one compression setting change) and produce a final report table + plots (accuracy vs size/latency) with seeds and confidence intervals via bootstrap on queries."
+  ],
+  "generated_at_utc": "2026-02-10 06:09:31 UTC",
+  "hardware": {
+    "cpu_cores": 24,
+    "cpu_threads": 48,
+    "ram_gb": 251.59,
+    "gpu_count": 2,
+    "gpu_names": [
+      "NVIDIA GeForce RTX 3090",
+      "NVIDIA GeForce RTX 3090"
+    ],
+    "gpu_vram_gb": [
+      24.0,
+      24.0
+    ]
+  }
+}

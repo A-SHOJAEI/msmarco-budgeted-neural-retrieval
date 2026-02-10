@@ -1,0 +1,22 @@
+Implemented a standalone repo in `/home/alireza/research-autopilot/generated_projects/msmarco-budgeted-neural-retrieval` matching `_autopilot/project_plan.json`, with:
+
+- Data download + verification: `src/msmarco_bnr/utils/download.py`, `src/msmarco_bnr/data/msmarco.py` (SHA256 manifest at `data/raw/msmarco/checksums.json`, plus optional `dataset.expected_sha256` support).
+- Training (PyTorch) with reproducibility controls (seed + deterministic flags): `src/msmarco_bnr/utils/repro.py`, `src/msmarco_bnr/training/train.py`
+  - Includes the required ablation: `dense_nodistill` (contrastive-only) alongside `dense_distill` when distillation is enabled.
+- Evaluation producing required artifacts:
+  - `make eval` writes `artifacts/results.json` via `src/msmarco_bnr/eval/pipeline.py`
+  - `make report` writes `artifacts/report.md` via `src/msmarco_bnr/utils/report.py`
+- Baseline + compression comparison:
+  - BM25 baseline: `src/msmarco_bnr/bm25/pyserini.py` (Lucene/pyserini) with a smoke-friendly fallback `src/msmarco_bnr/bm25/rank_bm25.py`
+  - FAISS FlatIP vs IVF-PQ: `src/msmarco_bnr/index/faiss_index.py` and eval pipeline
+- Makefile targets (and smoke default): `Makefile` with `setup`, `data`, `train`, `eval`, `report`, `all` (defaults to `CONFIG=configs/smoke.yaml`)
+- PEP 668 + no-ensurepip venv bootstrap: `scripts/bootstrap_venv.sh` (uses `python3 -m venv --without-pip` + `get-pip.py`, installs via `.venv/bin/pip`)
+- Pinned deps: `requirements.txt` (optional Lucene BM25 deps in `requirements-pyserini.txt`)
+- Configs:
+  - Fast default smoke: `configs/smoke.yaml` (synthetic dataset generator in `src/msmarco_bnr/data/smoke.py`)
+  - Real MS MARCO templates: `configs/msmarco_devsmall.yaml`, `configs/msmarco_full.yaml`
+
+Run:
+```bash
+make all
+```

@@ -1,0 +1,7 @@
+# Pinned for reproducibility; chosen to support Python 3.12 on Linux.
+numpy==1.26.4
+PyYAML==6.0.2
+tqdm==4.67.1
+rank-bm25==0.2.2
+# NOTE: Heavy ML dependencies (torch/transformers/faiss) are intentionally not installed by default
+# so `make all` stays fast and doesn't pull multi-hundred-MB wheels.
