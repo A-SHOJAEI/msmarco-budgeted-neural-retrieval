@@ -81,15 +81,17 @@ Runs emitted by `src/msmarco_bnr/eval/pipeline.py`:
 
 ## Results (Committed Artifacts)
 
-The checked-in artifacts correspond to the **smoke** config (`configs/smoke.yaml`) on CPU with no PyTorch installed (`torch: None`). In this config: `train.enabled: false` and `faiss.enabled: false`, and the synthetic dataset size is `num_passages=500`, `num_queries=50`, `num_triples=200`, so only the BM25 baseline ran.
+The checked-in artifacts correspond to the **smoke** config (`configs/smoke.yaml`) with `train.enabled: true` and `faiss.enabled: true`. The synthetic dataset size is `num_passages=500`, `num_queries=50`, `num_triples=200`. BM25 baseline, dense bi-encoder (FlatIP), and compressed IVF-PQ indexes were evaluated.
 
 Primary results table (Table 1): `artifacts/report.md` (generated from `artifacts/results.json`). `artifacts/results.json` also contains the full metric set (including `ndcg@100` and `mrr@100`) plus the full config snapshot.
 
 | run_id | kind | method | backend | ndcg@10 | mrr@10 | recall@10 | recall@100 | p50_ms | p95_ms | qps | index_bytes |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---|
-| bm25 | baseline | BM25 | rank_bm25 | 0.5935 | 0.4603 | 1.0000 | 1.0000 | 0.4273 | 0.4874 | 2385.3462 | n/a |
+| bm25 | baseline | BM25 | rank_bm25 | 0.0071 | 0.0033 | 0.0200 | 0.2600 | 0.9464 | 1.1557 | 1119.31 | n/a |
+| dense_nodistill:flatip | ablation | DenseBiEncoder | faiss | 0.0415 | 0.0302 | 0.0800 | 0.4000 | 0.0363 | 7.3219 | 1075.23 | 516090 |
+| dense_nodistill:ivfpq | ablation | DenseBiEncoder | faiss | 0.0221 | 0.0109 | 0.0600 | 0.2200 | 0.0495 | 6.0011 | 452.92 | 311393 |
 
-Run metadata (timestamp, Python version, device) is recorded at the top of `artifacts/report.md` and in `artifacts/results.json` (`environment` block). The run timestamp is `2026-02-10T06:34:02Z`.
+Run metadata (timestamp, Python version, device) is recorded at the top of `artifacts/report.md` and in `artifacts/results.json` (`environment` block). The run timestamp is `2026-02-20T05:54:25Z`.
 
 ## Reproducibility / How To Re-Run
 

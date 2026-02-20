@@ -39,7 +39,7 @@ class BiEncoder(nn.Module):
         else:
             self.proj = nn.Linear(hidden, cfg.projection_dim, bias=False)
 
-    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor, **kwargs) -> torch.Tensor:
         out = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
         if self.cfg.pooling != "mean":
             raise ValueError(f"Unsupported pooling: {self.cfg.pooling}")

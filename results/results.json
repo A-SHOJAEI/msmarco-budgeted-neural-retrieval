@@ -1,0 +1,157 @@
+{
+  "config": {
+    "artifacts_dir": "artifacts",
+    "bm25": {
+      "backend": "rank_bm25",
+      "k": 10
+    },
+    "dataset": {
+      "num_passages": 500,
+      "num_queries": 50,
+      "num_triples": 200,
+      "root_dir": "data/smoke",
+      "type": "smoke_synthetic",
+      "vocab_size": 2000
+    },
+    "distillation": {
+      "alpha_kl": 0.5,
+      "enabled": false,
+      "max_length": 256,
+      "teacher_name": "cross-encoder/ms-marco-MiniLM-L-2-v2",
+      "temperature": 1.0
+    },
+    "eval": {
+      "k_values": [
+        10,
+        100
+      ],
+      "latency_max_queries": 50
+    },
+    "faiss": {
+      "enabled": true,
+      "index_type": "ivfpq",
+      "k": 10,
+      "m": 16,
+      "nbits": 8,
+      "nlist": 32,
+      "nprobe": 4
+    },
+    "model": {
+      "encoder_name": "distilbert-base-uncased",
+      "normalize": true,
+      "pooling": "mean",
+      "projection_dim": 256
+    },
+    "run": {
+      "deterministic": true,
+      "device": "auto",
+      "name": "smoke",
+      "seed": 123
+    },
+    "train": {
+      "batch_size": 16,
+      "enabled": true,
+      "epochs": 1,
+      "eval_every": 50,
+      "grad_clip_norm": 1.0,
+      "log_every": 20,
+      "lr": 2e-05,
+      "max_length": 128,
+      "weight_decay": 0.01
+    }
+  },
+  "environment": {
+    "cuda_available": true,
+    "device": "cuda",
+    "git_commit": "c4e8dce39f75abad65a12c104a2c5c26e5c1a7b5",
+    "platform": "Linux-6.17.0-14-generic-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "torch": "2.10.0+cu128"
+  },
+  "runs": [
+    {
+      "backend": "rank_bm25",
+      "kind": "baseline",
+      "latency": {
+        "p50_ms": 0.9463654969295021,
+        "p95_ms": 1.1557101002836134,
+        "qps": 1119.3089297040651
+      },
+      "meta": {
+        "backend": "rank_bm25"
+      },
+      "method": "BM25",
+      "metrics": {
+        "mrr@10": 0.003333333333333333,
+        "mrr@100": 0.010320884640142983,
+        "ndcg@10": 0.007124143742160444,
+        "ndcg@100": 0.05296433400397838,
+        "recall@10": 0.02,
+        "recall@100": 0.26
+      },
+      "run_id": "bm25"
+    },
+    {
+      "backend": "faiss",
+      "kind": "ablation",
+      "latency": {
+        "p50_ms": 0.036289002309786156,
+        "p95_ms": 7.321889349987029,
+        "qps": 1075.2310801998444
+      },
+      "meta": {
+        "dim": 256,
+        "index_bytes": 516090,
+        "index_path": "artifacts/faiss/dense_nodistill/flatip.faiss",
+        "index_type": "flatip",
+        "ivf_nlist": null,
+        "nprobe": null,
+        "num_passages": 500,
+        "pq_m": null,
+        "pq_nbits": null
+      },
+      "method": "DenseBiEncoder",
+      "metrics": {
+        "mrr@10": 0.03019047619047619,
+        "mrr@100": 0.0386902820336367,
+        "ndcg@10": 0.04152786655351794,
+        "ndcg@100": 0.10083325790045965,
+        "recall@10": 0.08,
+        "recall@100": 0.4
+      },
+      "run_id": "dense_nodistill:flatip"
+    },
+    {
+      "backend": "faiss",
+      "kind": "ablation",
+      "latency": {
+        "p50_ms": 0.049545000365469605,
+        "p95_ms": 6.001053002546541,
+        "qps": 452.92310048774976
+      },
+      "meta": {
+        "dim": 256,
+        "index_bytes": 311393,
+        "index_path": "artifacts/faiss/dense_nodistill/ivfpq_nlist32_m16_nb8_np4.faiss",
+        "index_type": "ivfpq",
+        "ivf_nlist": 32,
+        "nprobe": 4,
+        "num_passages": 500,
+        "pq_m": 16,
+        "pq_nbits": 8
+      },
+      "method": "DenseBiEncoder",
+      "metrics": {
+        "mrr@10": 0.010857142857142859,
+        "mrr@100": 0.01636015868747353,
+        "ndcg@10": 0.02214077895604833,
+        "ndcg@100": 0.05409482240372892,
+        "recall@10": 0.06,
+        "recall@100": 0.22
+      },
+      "run_id": "dense_nodistill:ivfpq"
+    }
+  ],
+  "timestamp_utc": "2026-02-20T05:54:25Z",
+  "title": "smoke"
+}

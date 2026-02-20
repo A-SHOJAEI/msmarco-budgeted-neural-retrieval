@@ -23,8 +23,7 @@ model:
   normalize: true
 
 train:
-  # Keep smoke runs fast and offline (no model downloads / training).
-  enabled: false
+  enabled: true
   epochs: 1
   batch_size: 16
   lr: 2.0e-5
@@ -42,7 +41,7 @@ distillation:
   max_length: 256
 
 faiss:
-  enabled: false
+  enabled: true
   index_type: ivfpq
   # Keep small for smoke.
   nlist: 32
